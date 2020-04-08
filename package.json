@@ -22,7 +22,7 @@
   },
   "scripts": {
     "watch": "yarn link-local; cross-env NODE_ENV=development parcel index.html --no-hmr --target browser",
-    "build": "yarn link-local; cross-env NODE_ENV=production parcel build index.html --target browser --public-url ./",
+    "build": "rm -rf dist/face.* ;yarn link-local; cross-env NODE_ENV=production parcel build index.html --target browser --public-url ./",
     "lint": "eslint .",
     "link-local": "yalc link @tensorflow-models/facemesh",
     "deploy": "gh-pages -d dist"

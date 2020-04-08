@@ -1,4 +1,3 @@
-// import * as THREE from "three"
 import { ScatterGL } from "scatter-gl"
 import * as facemesh from '@tensorflow-models/facemesh'
 import * as tf from '@tensorflow/tfjs-core';
@@ -7,9 +6,9 @@ import { round } from "prelude-ls";
 
 // import * as tfjsWasm from '@tensorflow/tfjs-backend-wasm';
 
-// const scatterGL = new ScatterGL(document.querySelector('#scatter-gl-container'), { 'rotateOnStart': false, 'selectEnabled': true });
 const stats = new Stats();
 let model, video, videoWidth, videoHeight, canvas, ctx, scatterGLHasInitialized = false, scatterGL;
+let track = 0, trackBreak = true;
 let preLog = document.querySelector('#log-container')
 const VIDEO_SIZE = 500;
 const mobile = isMobile();
@@ -48,7 +47,15 @@ async function renderPrediction() {
     const predictions = await model.estimateFaces(video);
     // console.log(predictions.length);
     //
-    if (predictions.length > 0) drawScatter(predictions)
+    if (predictions.length > 0) {
+        if(trackBreak){
+            track += 1
+            trackBreak = false
+        }
+
+        drawScatter(predictions)
+    }
+    else trackBreak = true;
 
     ctx.drawImage(video, 0, 0, videoWidth, videoHeight, 0, 0, canvas.width, canvas.height);
     stats.end();
@@ -72,7 +79,7 @@ async function drawScatter(predictions) {
     let pointC = flattenedPointsData[62]
     let pointD = flattenedPointsData[291]
 
-    //Tính vector pháp tuyến của mặt phẳng mặt. từ 4 điểm 
+    //Tính vector pháp tuyến của mặt phẳng mặt từ 4 điểm 
     let vecAB = getVector(pointA, pointB)
     let vecAD = getVector(pointA, pointD)
     let vecBC = getVector(pointB, pointC)
@@ -81,7 +88,7 @@ async function drawScatter(predictions) {
     let horizontalAngle = Math.atan2(normalVec[0], normalVec[2]) * 180 / Math.PI
     let verticalAngle = Math.atan2(normalVec[1], normalVec[2]) * 180 / Math.PI
     // console.log(`horizontalAngle: ${horizontalAngle}, verticalAngle: ${verticalAngle}`);
-    //show pre log
+    //show prelog
     if(preLog) showPreLogs(horizontalAngle, verticalAngle)
 
     if (!mobile) {
@@ -98,13 +105,13 @@ async function drawScatter(predictions) {
 }
 
 function showPreLogs(horizontalAngle, verticalAngle){
-    preLog.innerHTML=`${round(horizontalAngle)}, ${round(verticalAngle)}`
+    preLog.innerHTML=` Detect: ${tf.getBackend()}\n Track: ${track} \n Góc mặt: (h:${round(horizontalAngle)}, v:${round(verticalAngle)})`
 }
-
 
 async function main() {
     model = await facemesh.load({ maxFaces: 1 });
-    console.log(tf.getBackend());
+    
+    console.log(tf.getBackend()); //wasm, webgl, cpu
 
     //show stats
     stats.showPanel(0);  // 0: fps, 1: ms, 2: mb, 3+: custom
@@ -133,7 +140,7 @@ async function main() {
 
     renderPrediction()
 
-    if(mobile){
+    if(!mobile){
         document.querySelector('#scatter-gl-container').style =
             `width: ${VIDEO_SIZE}px; height: ${VIDEO_SIZE}px;`;
     
