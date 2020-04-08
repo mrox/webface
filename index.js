@@ -4,14 +4,18 @@ import * as tf from '@tensorflow/tfjs-core';
 import Stats from 'stats.js';
 import { round } from "prelude-ls";
 
+
 // import * as tfjsWasm from '@tensorflow/tfjs-backend-wasm';
 
 const stats = new Stats();
 let model, video, videoWidth, videoHeight, canvas, ctx, scatterGLHasInitialized = false, scatterGL;
 let track = 0, trackBreak = true;
 let preLog = document.querySelector('#log-container')
+let preview, previewCtx, previewContainer;
 const VIDEO_SIZE = 500;
 const mobile = isMobile();
+const facePhotos = []
+const cropPhotoworker = new Worker('./crop.worker.js')
 
 function isMobile() {
     const isAndroid = /Android/i.test(navigator.userAgent);
@@ -28,8 +32,8 @@ async function setupCamera() {
             facingMode: 'user',
             // Only setting the video to a specified size in order to accommodate a
             // point cloud, so on mobile devices accept the default size.
-            width: mobile ? undefined : VIDEO_SIZE,
-            height: mobile ? undefined : VIDEO_SIZE
+            // width: mobile ? undefined : VIDEO_SIZE,
+            // height: mobile ? undefined : VIDEO_SIZE
         },
     });
     video.srcObject = stream;
@@ -45,9 +49,37 @@ async function renderPrediction() {
     stats.begin();
 
     const predictions = await model.estimateFaces(video);
-    // console.log(predictions.length);
+    // console.log(videoWidth, videoHeight, canvas.width, canvas.height);
+    ctx.drawImage(video, 0, 0, videoWidth, videoHeight, 0, 0, canvas.width, canvas.height);
+    
     //
     if (predictions.length > 0) {
+        const p = predictions[0]
+        const box = p.boundingBox
+        const topLeft = box.topLeft[0]
+        const bottomRight = box.bottomRight[0]        
+
+        //lấy toạ độ face
+        const w = Math.round(bottomRight[0] - topLeft[0])
+        const x = Math.round(videoWidth - bottomRight[0])
+        const y = Math.round(topLeft[1])
+        const h = Math.round(bottomRight[1] - topLeft[1])
+        
+        // Crop face
+        var imgData = ctx.getImageData(x, y, w, h);
+        //worker xử lý ảnh
+        cropPhotoworker.postMessage({imgData, w, h})
+        
+        //Vẽ 2 điểm góc của mặt lên video
+        ctx.beginPath();
+        ctx.arc(topLeft[0], topLeft[1], 3 /* radius */, 0, 2 * Math.PI);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(bottomRight[0], bottomRight[1], 3 /* radius */, 0, 2 * Math.PI);
+        ctx.fill();
+        //
+        //Tạo track mới nếu mất track từ frame trước
         if(trackBreak){
             track += 1
             trackBreak = false
@@ -57,7 +89,6 @@ async function renderPrediction() {
     }
     else trackBreak = true;
 
-    ctx.drawImage(video, 0, 0, videoWidth, videoHeight, 0, 0, canvas.width, canvas.height);
     stats.end();
     requestAnimationFrame(renderPrediction);
 
@@ -74,12 +105,12 @@ async function drawScatter(predictions) {
         flattenedPointsData = flattenedPointsData.concat(pointsData[i]);
     }
 
-    let pointA = flattenedPointsData[362]
-    let pointB = flattenedPointsData[133]
-    let pointC = flattenedPointsData[62]
-    let pointD = flattenedPointsData[291]
+    let pointA = flattenedPointsData[362] //mép trong mắt trái
+    let pointB = flattenedPointsData[133] //mép trong mắt phải
+    let pointC = flattenedPointsData[62]  //mép phải miệng
+    let pointD = flattenedPointsData[291] //mép trái miệng
 
-    //Tính vector pháp tuyến của mặt phẳng mặt từ 4 điểm 
+    //Tính vector pháp tuyến của mặt phẳng mặt từ 4 điểm trên mặt
     let vecAB = getVector(pointA, pointB)
     let vecAD = getVector(pointA, pointD)
     let vecBC = getVector(pointB, pointC)
@@ -87,11 +118,13 @@ async function drawScatter(predictions) {
     let normalVec = sum(cross(vecAD, vecAB), cross(vecBC, vecAB))
     let horizontalAngle = Math.atan2(normalVec[0], normalVec[2]) * 180 / Math.PI
     let verticalAngle = Math.atan2(normalVec[1], normalVec[2]) * 180 / Math.PI
-    // console.log(`horizontalAngle: ${horizontalAngle}, verticalAngle: ${verticalAngle}`);
-    //show prelog
+    
+
+
     if(preLog) showPreLogs(horizontalAngle, verticalAngle)
 
     if (!mobile) {
+
         const dataset = new ScatterGL.Dataset(flattenedPointsData);
 
         if (!scatterGLHasInitialized) {
@@ -105,7 +138,7 @@ async function drawScatter(predictions) {
 }
 
 function showPreLogs(horizontalAngle, verticalAngle){
-    preLog.innerHTML=` Detect: ${tf.getBackend()}\n Track: ${track} \n Góc mặt: (h:${round(horizontalAngle)}, v:${round(verticalAngle)})`
+    preLog.innerHTML=`Backend: ${tf.getBackend()}\nTrack: ${track} \nGóc mặt [h,v]: [${round(horizontalAngle)},${round(verticalAngle)}]`
 }
 
 async function main() {
@@ -138,6 +171,15 @@ async function main() {
     ctx.strokeStyle = '#32EEDB';
     ctx.lineWidth = 0.5;
 
+
+    previewContainer = document.querySelector('.preview-wrapper');
+
+    preview  = document.querySelector('#crop');
+    previewCtx = preview.getContext('2d')
+    previewCtx.translate(canvas.width, 0);
+    previewCtx.scale(-1, 1);
+
+
     renderPrediction()
 
     if(!mobile){
@@ -148,12 +190,22 @@ async function main() {
             document.querySelector('#scatter-gl-container'),
             { 'rotateOnStart': false, 'selectEnabled': true });
     }
+
+    cropPhotoworker.addEventListener('message', (e) =>{
+
+        preview.width = e.data.w
+        preview.height = e.data.h
+        previewContainer.style = `width: ${e.data.w}px; height: ${e.data.h}px`;
+        previewCtx.putImageData(e.data.pixels, 0,0)
+        
+    })
 }
 
 main()
 
 
 //Các hàm cho vector
+//#region vector
 function getVector(A, B) {
     return [B[0] - A[0], B[1] - A[1], B[2] - A[2]]
 }
@@ -166,4 +218,4 @@ function sum(a, b) {
 
     return [a[0] + b[0], a[1] + b[1], a[2] + b[2]]
 }
-
+//#endregion
