@@ -3,3 +3,4 @@ node_modules
 .yalc
 .cache
 .yalc/*
+.vscode/*
