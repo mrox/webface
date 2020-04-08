@@ -133,17 +133,20 @@ async function main() {
 
     renderPrediction()
 
-
-    document.querySelector('#scatter-gl-container').style =
-        `width: ${VIDEO_SIZE}px; height: ${VIDEO_SIZE}px;`;
-
-    scatterGL = new ScatterGL(
-        document.querySelector('#scatter-gl-container'),
-        { 'rotateOnStart': false, 'selectEnabled': true });
+    if(mobile){
+        document.querySelector('#scatter-gl-container').style =
+            `width: ${VIDEO_SIZE}px; height: ${VIDEO_SIZE}px;`;
+    
+        scatterGL = new ScatterGL(
+            document.querySelector('#scatter-gl-container'),
+            { 'rotateOnStart': false, 'selectEnabled': true });
+    }
 }
 
 main()
 
+
+//Các hàm cho vector
 function getVector(A, B) {
     return [B[0] - A[0], B[1] - A[1], B[2] - A[2]]
 }

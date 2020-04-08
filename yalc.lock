@@ -2,7 +2,7 @@
   "version": "v1",
   "packages": {
     "@tensorflow-models/facemesh": {
-      "signature": "efe507662dbdcb843aa8abaafef49c94"
+      "signature": "0d1fb4d82e73de2009019c7042a19a58"
     }
   }
 }
