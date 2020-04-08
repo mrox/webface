@@ -14,6 +14,7 @@
     "@tensorflow/tfjs-converter": "^1.6.1",
     "@tensorflow/tfjs-core": "^1.6.1",
     "core-js": "3",
+    "gh-pages": "^2.2.0",
     "math.js": "^1.1.46",
     "scatter-gl": "^0.0.4",
     "stats.js": "^0.17.0",
@@ -23,7 +24,8 @@
     "watch": "yarn link-local; cross-env NODE_ENV=development parcel index.html --no-hmr --target browser",
     "build": "cross-env NODE_ENV=production parcel build index.html --target browser --public-url ./",
     "lint": "eslint .",
-    "link-local": "yalc link @tensorflow-models/facemesh"
+    "link-local": "yalc link @tensorflow-models/facemesh",
+    "deploy": "gh-pages -d dist"
   },
   "browser": {
     "crypto": false
