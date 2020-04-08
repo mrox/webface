@@ -1,5 +1,5 @@
 node_modules
-.yacl
+.yalc
 .cache
-.yacl*
-.yacl/*
+.yalc*
+.yalc/*
