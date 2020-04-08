@@ -12,6 +12,7 @@ let model, video, videoWidth, videoHeight, canvas, ctx, scatterGLHasInitialized 
 let track = 0, trackBreak = true;
 let preLog = document.querySelector('#log-container')
 let preview, previewCtx, previewContainer;
+let preBrightness = document.querySelector('#brightness')
 const VIDEO_SIZE = 500;
 const mobile = isMobile();
 const facePhotos = []
@@ -68,7 +69,8 @@ async function renderPrediction() {
         // Crop face
         var imgData = ctx.getImageData(x, y, w, h);
         //worker xử lý ảnh
-        cropPhotoworker.postMessage({imgData, w, h})
+        // if(imgData.data)
+            cropPhotoworker.postMessage({imgData, w, h})
         
         //Vẽ 2 điểm góc của mặt lên video
         ctx.beginPath();
@@ -123,17 +125,17 @@ async function drawScatter(predictions) {
 
     if(preLog) showPreLogs(horizontalAngle, verticalAngle)
 
-    if (!mobile) {
+    // if (!mobile) {
 
-        const dataset = new ScatterGL.Dataset(flattenedPointsData);
+    //     const dataset = new ScatterGL.Dataset(flattenedPointsData);
 
-        if (!scatterGLHasInitialized) {
-            scatterGL.render(dataset);
-        } else {
-            scatterGL.updateDataset(dataset);
-        }
-        scatterGLHasInitialized = true;
-    }
+    //     if (!scatterGLHasInitialized) {
+    //         scatterGL.render(dataset);
+    //     } else {
+    //         scatterGL.updateDataset(dataset);
+    //     }
+    //     scatterGLHasInitialized = true;
+    // }
 
 }
 
@@ -157,6 +159,8 @@ async function main() {
     videoHeight = video.videoHeight;
     video.width = videoWidth;
     video.height = videoHeight;
+    if(mobile) document.body.style = `width: ${videoWidth}px;`
+
 
     canvas = document.getElementById('output');
     canvas.width = videoWidth;
@@ -173,7 +177,6 @@ async function main() {
 
 
     previewContainer = document.querySelector('.preview-wrapper');
-
     preview  = document.querySelector('#crop');
     previewCtx = preview.getContext('2d')
     previewCtx.translate(canvas.width, 0);
@@ -182,17 +185,17 @@ async function main() {
 
     renderPrediction()
 
-    if(!mobile){
-        document.querySelector('#scatter-gl-container').style =
-            `width: ${VIDEO_SIZE}px; height: ${VIDEO_SIZE}px;`;
+    // if(!mobile){
+    //     document.querySelector('#scatter-gl-container').style =
+    //         `width: ${VIDEO_SIZE}px; height: ${VIDEO_SIZE}px;`;
     
-        scatterGL = new ScatterGL(
-            document.querySelector('#scatter-gl-container'),
-            { 'rotateOnStart': false, 'selectEnabled': true });
-    }
+    //     scatterGL = new ScatterGL(
+    //         document.querySelector('#scatter-gl-container'),
+    //         { 'rotateOnStart': false, 'selectEnabled': true });
+    // }
 
     cropPhotoworker.addEventListener('message', (e) =>{
-
+        preBrightness.innerHTML = `Brightness: ${e.data.brightness}`
         preview.width = e.data.w
         preview.height = e.data.h
         previewContainer.style = `width: ${e.data.w}px; height: ${e.data.h}px`;
