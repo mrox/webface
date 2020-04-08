@@ -1,4 +1,4 @@
 # webface
 .yalc
 .cache
-.yalc.lock
+.yalc*
