@@ -21,7 +21,7 @@
     "three": "^0.115.0"
   },
   "scripts": {
-    "watch": "yarn link-local; cross-env NODE_ENV=development parcel index.html --no-hmr --target browser",
+    "watch": "yarn link-local; cross-env NODE_ENV=development parcel index.html --no-hmr --target browser --global window",
     "build": "rm -rf dist/face.* dist/crop.*;yarn link-local; cross-env NODE_ENV=production parcel build index.html --no-source-maps --target browser --public-url ./",
     "lint": "eslint .",
     "link-local": "yalc link @tensorflow-models/facemesh",
@@ -58,5 +58,8 @@
   },
   "eslintIgnore": [
     "dist/"
-  ]
+  ],
+  "externals":{
+    "opencv.js": false
+  }
 }

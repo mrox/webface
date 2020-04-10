@@ -4,7 +4,6 @@ import * as tf from '@tensorflow/tfjs-core';
 import Stats from 'stats.js';
 import { round } from "prelude-ls";
 
-
 // import * as tfjsWasm from '@tensorflow/tfjs-backend-wasm';
 
 const stats = new Stats();
@@ -13,16 +12,20 @@ let track = 0, trackBreak = true;
 let preLog = document.querySelector('#log-container')
 let preview, previewCtx, previewContainer;
 let preBrightness = document.querySelector('#brightness')
+let preFaceSize = document.querySelector('#facesize')
+let preBlurry = document.querySelector('#blurry')
 const VIDEO_SIZE = 500;
 const mobile = isMobile();
 const facePhotos = []
-const cropPhotoworker = new Worker('./crop.worker.js')
+const cropPhotoworker = new Worker('./attribute.worker.js')
 
 function isMobile() {
     const isAndroid = /Android/i.test(navigator.userAgent);
     const isiOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
     return isAndroid || isiOS;
 }
+
+
 
 async function setupCamera() {
     video = document.getElementById('video');
@@ -31,6 +34,7 @@ async function setupCamera() {
         'audio': false,
         'video': {
             facingMode: 'user',
+            width: { exact: 1280 }, height: { exact: 720 }
             // Only setting the video to a specified size in order to accommodate a
             // point cloud, so on mobile devices accept the default size.
             // width: mobile ? undefined : VIDEO_SIZE,
@@ -48,30 +52,23 @@ async function setupCamera() {
 
 async function renderPrediction() {
     stats.begin();
-
-    const predictions = await model.estimateFaces(video);
-    // console.log(videoWidth, videoHeight, canvas.width, canvas.height);
     ctx.drawImage(video, 0, 0, videoWidth, videoHeight, 0, 0, canvas.width, canvas.height);
     
+    const predictions = await model.estimateFaces(video);
+
     //
     if (predictions.length > 0) {
         const p = predictions[0]
         const box = p.boundingBox
         const topLeft = box.topLeft[0]
-        const bottomRight = box.bottomRight[0]        
+        const bottomRight = box.bottomRight[0]
 
         //lấy toạ độ face
         const w = Math.round(bottomRight[0] - topLeft[0])
         const x = Math.round(videoWidth - bottomRight[0])
         const y = Math.round(topLeft[1])
         const h = Math.round(bottomRight[1] - topLeft[1])
-        
-        // Crop face
-        var imgData = ctx.getImageData(x, y, w, h);
-        //worker xử lý ảnh
-        // if(imgData.data)
-            cropPhotoworker.postMessage({imgData, w, h})
-        
+
         //Vẽ 2 điểm góc của mặt lên video
         ctx.beginPath();
         ctx.arc(topLeft[0], topLeft[1], 3 /* radius */, 0, 2 * Math.PI);
@@ -82,7 +79,7 @@ async function renderPrediction() {
         ctx.fill();
         //
         //Tạo track mới nếu mất track từ frame trước
-        if(trackBreak){
+        if (trackBreak) {
             track += 1
             trackBreak = false
         }
@@ -105,7 +102,47 @@ async function drawScatter(predictions) {
     let flattenedPointsData = [];
     for (let i = 0; i < pointsData.length; i++) {
         flattenedPointsData = flattenedPointsData.concat(pointsData[i]);
+        // console.log(pointsData[i]);
+
     }
+
+    let minX = 100000
+    let minY = 100000
+    let maxX = -100000
+    let maxY = -100000
+
+    flattenedPointsData.forEach(p => {
+        minX = Math.min(minX, -p[0])
+        minY = Math.min(minY, -p[1])
+        maxX = Math.max(maxX, -p[0])
+        maxY = Math.max(maxY, -p[1])
+    })
+
+    const w = Math.round(maxX - minX)
+    const x = Math.round(videoWidth - maxX)
+    const y = Math.round(minY)
+    const h = Math.round(maxY - minY)
+    // var w = maxX - minX
+    // var h = maxY - minY
+    var imgData = ctx.getImageData(x, y, w, h);
+    cropPhotoworker.postMessage({ imgData, w, h })
+    //worker xử lý ảnh
+    // if(imgData.data)
+
+    ctx.beginPath();
+    ctx.arc(minX, minY, 3 /* radius */, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(maxX, maxY, 3 /* radius */, 0, 2 * Math.PI);
+    ctx.fill();
+
+
+
+
+    // cropPhotoworker.postMessage({imgData, w, h})
+    // console.log(`MIN: ${minX}, ${minY}; MAX: ${maxX}, ${maxY}`);
+
+
 
     let pointA = flattenedPointsData[362] //mép trong mắt trái
     let pointB = flattenedPointsData[133] //mép trong mắt phải
@@ -120,10 +157,10 @@ async function drawScatter(predictions) {
     let normalVec = sum(cross(vecAD, vecAB), cross(vecBC, vecAB))
     let horizontalAngle = Math.atan2(normalVec[0], normalVec[2]) * 180 / Math.PI
     let verticalAngle = Math.atan2(normalVec[1], normalVec[2]) * 180 / Math.PI
-    
 
 
-    if(preLog) showPreLogs(horizontalAngle, verticalAngle)
+
+    if (preLog) showPreLogs(horizontalAngle, verticalAngle)
 
     // if (!mobile) {
 
@@ -139,13 +176,13 @@ async function drawScatter(predictions) {
 
 }
 
-function showPreLogs(horizontalAngle, verticalAngle){
-    preLog.innerHTML=`Backend: ${tf.getBackend()}\nTrack: ${track} \nGóc mặt [h,v]: [${round(horizontalAngle)},${round(verticalAngle)}]`
+function showPreLogs(horizontalAngle, verticalAngle) {
+    preLog.innerHTML = `Backend: ${tf.getBackend()}\nTrack: ${track} \nGóc mặt [h,v]: [${round(horizontalAngle)},${round(verticalAngle)}]`
 }
 
 async function main() {
     model = await facemesh.load({ maxFaces: 1 });
-    
+
     console.log(tf.getBackend()); //wasm, webgl, cpu
 
     //show stats
@@ -159,8 +196,8 @@ async function main() {
     videoHeight = video.videoHeight;
     video.width = videoWidth;
     video.height = videoHeight;
-    if(mobile) document.body.style = `width: ${videoWidth}px;`
-
+    if (mobile) document.body.style = `width: ${videoWidth}px;`
+    document.querySelector("#videosize").innerHTML = `Video Size: ${video.videoWidth},${video.videoHeight}`
 
     canvas = document.getElementById('output');
     canvas.width = videoWidth;
@@ -177,7 +214,7 @@ async function main() {
 
 
     previewContainer = document.querySelector('.preview-wrapper');
-    preview  = document.querySelector('#crop');
+    preview = document.querySelector('#crop');
     previewCtx = preview.getContext('2d')
     previewCtx.translate(canvas.width, 0);
     previewCtx.scale(-1, 1);
@@ -188,19 +225,20 @@ async function main() {
     // if(!mobile){
     //     document.querySelector('#scatter-gl-container').style =
     //         `width: ${VIDEO_SIZE}px; height: ${VIDEO_SIZE}px;`;
-    
+
     //     scatterGL = new ScatterGL(
     //         document.querySelector('#scatter-gl-container'),
     //         { 'rotateOnStart': false, 'selectEnabled': true });
     // }
 
-    cropPhotoworker.addEventListener('message', (e) =>{
+    cropPhotoworker.addEventListener('message', async (e) => {
         preBrightness.innerHTML = `Brightness: ${e.data.brightness}`
+        preFaceSize.innerHTML = `Face Size: ${e.data.w}, ${e.data.h}`
+        preBlurry.innerHTML = `Blurry: ${e.data.blur}`
         preview.width = e.data.w
         preview.height = e.data.h
         previewContainer.style = `width: ${e.data.w}px; height: ${e.data.h}px`;
-        previewCtx.putImageData(e.data.pixels, 0,0)
-        
+        previewCtx.putImageData(e.data.pixels, 0, 0)        
     })
 }
 

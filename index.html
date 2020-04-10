@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0"> -->
     <title>Face</title>
+    <!-- <script async src="./opencv.js" onload="onOpenCvReady();"></script> -->
+
     <style>
         .container {
             display: flex;
@@ -36,13 +38,7 @@
     <div id="main">
 
         <div class="container">
-            <div>
-                <div class="preview-wrapper">
-                    <canvas id="crop"></canvas>
-                </div>
-                <pre id="log-container"></pre>
-                <pre id="brightness"></pre>
-            </div>
+            
             <div class="canvas-wrapper">
                 <canvas id="output" ></canvas>
                 <video id="video" playsinline style="
@@ -54,12 +50,26 @@
               ">
                 </video>
             </div>
-            
+            <div>
+                <div class="preview-wrapper">
+                    <canvas id="crop"></canvas>
+                </div>
+                <pre id="log-container"></pre>
+                <pre id="videosize"></pre>
+                <pre id="brightness"></pre>
+                <pre id="facesize"></pre>
+                <pre id="blurry"></pre>
+            </div>
             <!-- <div id="scatter-gl-container"></div> -->
         </div>
     </div>
 
 </body>
 <script src="./index.js"></script>
-
+<script>
+    function onOpenCvReady(){
+    console.log(`done`);
+    
+}
+</script>
 </html>
