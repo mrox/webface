@@ -1,6 +1,9 @@
 html,
 body {
     overflow: hidden;
+    padding: 0;
+    margin: 0;
+    
 }
 
 #output {
@@ -10,14 +13,39 @@ body {
     left: 0;
     top: 0;
     background-color: antiquewhite;
+    /* transform: scaleX(-1); */
 }
 
-video {
-    display: none;
+#video {
+    -webkit-transform: scaleX(-1);
+            transform: scaleX(-1);
+            visibility: hidden;
+            width: auto;
+            height: auto;
+            position: fixed;
+    /* -webkit-transform: scaleX(-1);
+    transform: scaleX(-1);
+    display: none; */
+    /* moz-transform: scaleX(-1);
+        -o-transform: scaleX(-1);
+        -webkit-transform: scaleX(-1);
+        transform: scaleX(-1);
+        display: none;
+        filter: FlipH;
+        -ms-filter: "FlipH"; */
+    /* -webkit-transform: scaleX(-1);
+    transform: scaleX(-1);
+    visibility: hidden;
+    width: auto;
+    height: auto;
+    position: fixed;
+    display: none; */
 }
+
 
 canvas {
     position: fixed;
     top: 0;
     left: 0;
+    width: 100vw;
 }
