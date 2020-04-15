@@ -15,13 +15,15 @@
     "@tensorflow/tfjs-core": "^1.6.1",
     "core-js": "3",
     "gh-pages": "^2.2.0",
+    "jquery": "^3.5.0",
     "math.js": "^1.1.46",
+    "popper.js": "^1.16.1",
     "scatter-gl": "^0.0.4",
     "stats.js": "^0.17.0",
     "three": "^0.115.0"
   },
   "scripts": {
-    "watch": "yarn link-local; cross-env NODE_ENV=development parcel index.html --no-hmr --target browser --global window",
+    "watch": "yarn link-local; cross-env NODE_ENV=development parcel index.html new.html --no-hmr --target browser --global window",
     "build": "rm -rf dist/face.* dist/crop.*;yarn link-local; cross-env NODE_ENV=production parcel build index.html --no-source-maps --target browser --public-url ./",
     "lint": "eslint .",
     "link-local": "yalc link @tensorflow-models/facemesh",
@@ -59,7 +61,7 @@
   "eslintIgnore": [
     "dist/"
   ],
-  "externals":{
+  "externals": {
     "opencv.js": false
   }
 }

@@ -3,73 +3,89 @@
 
 <head>
     <meta charset="UTF-8">
-    <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0"> -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Face</title>
-    <!-- <script async src="./opencv.js" onload="onOpenCvReady();"></script> -->
+    <link rel="stylesheet" href="./bootstrap.min.css">
+    <script src="./jquery-3.4.1.slim.min.js"></script>
+    <script src="./popper.min.js"></script>
+    <script src="./bootstrap.min.js"></script>
 
     <style>
-        .container {
-            display: flex;
-            flex-direction: row;
-        }
-        
-        .canvas-wrapper,
-        #scatter-gl-container {
-            display: none;
-            vertical-align: top;
+       
+        .container-fluid {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
         }
 
-        #scatter-gl-container {
-            border: solid 1px black;
-            position: relative;
+        .canvas-wrapper {
+            position: fixed;
+            width: 100vw;
+            height: 100vh;
+            top: 0;
+            left: 0;
+            background-color: bisque;
         }
 
-        /* center the canvas within its wrapper */
-        #scatter-gl-container canvas {
-            transform: translate3d(-50%, -50%, 0);
-            left: 50%;
-            top: 50%;
-            position: absolute;
+        #preview {
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            z-index: 1000000;
+        }
+        #output {
+            position: fixed;
+            width: 100vw;
+            height: 100vh;
+            top: 0;
+            left: 0;
+        }
+        /* #output {
+            width: 100vw;
+            height: 100vh;
+            display: block;
+        } */
+
+        #video {
+            -webkit-transform: scaleX(-1);
+            transform: scaleX(-1);
+            visibility: hidden;
+            width: auto;
+            height: auto;
+            position: fixed;
+
+        }
+
+        #crop {
+            width: 250px;
+            /* height: 350px; */
         }
     </style>
+
 </head>
 
 <body>
-    <div id="main">
+    <div class="container-fluid">
+        <div class="canvas-wrapper">
+            <canvas id="output"></canvas>
+            <video id="video" playsinline>
+            </video>
+        </div>
 
-        <div class="container">
-            
-            <div class="canvas-wrapper">
-                <canvas id="output" ></canvas>
-                <video id="video" playsinline style="
-              -webkit-transform: scaleX(-1);
-              transform: scaleX(-1);
-              visibility: hidden;
-              width: auto;
-              height: auto;
-              ">
-                </video>
+        <div id="preview">
+            <div class="preview-wrapper">
+                <canvas id="crop"></canvas>
             </div>
-            <div>
-                <div class="preview-wrapper">
-                    <canvas id="crop"></canvas>
-                </div>
-                <pre id="log-container"></pre>
-                <pre id="videosize"></pre>
-                <pre id="brightness"></pre>
-                <pre id="facesize"></pre>
-                <pre id="blurry"></pre>
-            </div>
-            <!-- <div id="scatter-gl-container"></div> -->
+            <pre id="log-container"></pre>
+            <pre id="videosize"></pre>
+            <pre id="brightness"></pre>
+            <pre id="facesize"></pre>
+            <pre id="blurry"></pre>
         </div>
     </div>
-
 </body>
 <script src="./index.js"></script>
-<script>
-    function onOpenCvReady(){
-    console.log(`done`);
-    
-}
-</script>
+
 </html>

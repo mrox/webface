@@ -187,7 +187,7 @@ async function main() {
 
     //show stats
     stats.showPanel(0);  // 0: fps, 1: ms, 2: mb, 3+: custom
-    document.getElementById('main').appendChild(stats.dom);
+    document.body.appendChild(stats.dom);
 
     //setup camera
     await setupCamera();
@@ -196,17 +196,19 @@ async function main() {
     videoHeight = video.videoHeight;
     video.width = videoWidth;
     video.height = videoHeight;
-    if (mobile) document.body.style = `width: ${videoWidth}px;`
+    // if (mobile) document.body.style = `width: ${videoWidth}px;`
     document.querySelector("#videosize").innerHTML = `Video Size: ${video.videoWidth},${video.videoHeight}`
 
     canvas = document.getElementById('output');
-    canvas.width = videoWidth;
-    canvas.height = videoHeight;
-    const canvasContainer = document.querySelector('.canvas-wrapper');
-    canvasContainer.style = `width: ${videoWidth}px; height: ${videoHeight}px`;
-
+    // canvas.width = videoWidth;
+    // canvas.height = videoHeight;
+    // const canvasContainer = document.querySelector('.canvas-wrapper');
+    // canvasContainer.style = `width: ${window.innerWidth}px; height: ${window.innerHeight}px`;
+    
+    console.log(window.innerWidth);
+    
     ctx = canvas.getContext('2d');
-    ctx.translate(canvas.width, 0);
+    ctx.translate(window.innerWidth, 0);
     ctx.scale(-1, 1);
     ctx.fillStyle = '#32EEDB';
     ctx.strokeStyle = '#32EEDB';
@@ -237,7 +239,7 @@ async function main() {
         preBlurry.innerHTML = `Blurry: ${e.data.blur}`
         preview.width = e.data.w
         preview.height = e.data.h
-        previewContainer.style = `width: ${e.data.w}px; height: ${e.data.h}px`;
+        // previewContainer.style = `width: 250px; height: 300px;`//`width: ${e.data.w}px; height: ${e.data.h}px`;
         previewCtx.putImageData(e.data.pixels, 0, 0)        
     })
 }

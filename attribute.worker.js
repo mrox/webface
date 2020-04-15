@@ -36,5 +36,5 @@ self.checkBlur = (src) => {
     cv.meanStdDev(dst, menO, men)
     const blur = men.data64F[0]
     src.delete(); dst.delete(); men.delete(), menO.delete()
-    return blur
+    return Math.pow(blur,2)
 }
