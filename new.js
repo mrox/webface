@@ -2,9 +2,10 @@ import * as facemesh from '@tensorflow-models/facemesh'
 import * as tf from '@tensorflow/tfjs-core';
 import Stats from 'stats.js';
 
-let video, videoWidth, videoHeight, ctx
+let model, video, videoWidth, videoHeight, ctx, faceCtx
 let stats = new Stats();
 let canvas = document.getElementById('output');
+let faceCanvas = document.getElementById('face')
 
 function isMobile() {
     const isAndroid = /Android/i.test(navigator.userAgent);
@@ -42,33 +43,34 @@ async function setupCamera() {
     }
     stats.showPanel(0);  // 0: fps, 1: ms, 2: mb, 3+: custom
     document.body.appendChild(stats.dom);
-
+    model = await facemesh.load({ maxFaces: 1 });
     await setupCamera();
     video.play();
     videoWidth = video.videoWidth;
     videoHeight = video.videoHeight;
     ctx = canvas.getContext('2d');
+    faceCtx = faceCanvas.getContext('2d')
+    console.log(faceCanvas);
+    
+    canvas.width = faceCanvas.width = window.innerWidth
+    canvas.height = faceCanvas.height = window.innerHeight
     renderPrediction()
-
-
-
 
 })()
 
 async function renderPrediction(){
     stats.begin();
-
-    
-    var scale = Math.max(canvas.width / videoWidth, canvas.height / videoHeight);
+    const predictions = await model.estimateFaces(video);  
+    let scale = Math.max(canvas.width/ videoWidth, canvas.height/ videoHeight)
     var left = (canvas.width / 2) - (videoWidth / 2) * scale;
     var top = (canvas.height / 2) - (videoHeight / 2) * scale;
-    
-    ctx.drawImage(video, left, top, videoWidth * scale, videoHeight * scale);
+    ctx.drawImage(video, left, top, videoWidth* scale, videoHeight* scale );
 
-    // ctx.drawImage(video, 0, 0, videoWidth * scale, videoHeight *scale);
-    // ctx.drawImage(video, 0, 0, videoWidth, videoHeight, 0, 0, canvas.width, canvas.height);
-
-
+    faceCtx.beginPath();
+    faceCtx.lineWidth = "6";
+    faceCtx.strokeStyle = "red";
+    faceCtx.rect(5, 5, 290, 140);
+    faceCtx.stroke();
     stats.end()
     requestAnimationFrame(renderPrediction);
 }
@@ -81,11 +83,3 @@ async function testBrowse() {
     }
     return valid.canvas && valid.webgl && valid.workers
 }
-
-function animate() {
-
-	
-
-}
-
-

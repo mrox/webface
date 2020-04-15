@@ -23,7 +23,7 @@
     "three": "^0.115.0"
   },
   "scripts": {
-    "watch": "yarn link-local; cross-env NODE_ENV=development parcel new.html --cert ./ssl/10.136.236.87.pem --key  ./ssl/10.136.236.87-key.pem --no-hmr --target browser --global window",
+    "watch": "yarn link-local; cross-env NODE_ENV=development parcel new.html --cert ./ssl/10.136.230.110.pem --key  ./ssl/10.136.230.110-key.pem --no-hmr --target browser --global window",
     "build": "rm -rf dist/face.* dist/crop.*;yarn link-local; cross-env NODE_ENV=production parcel build index.html --no-source-maps --target browser --public-url ./",
     "lint": "eslint .",
     "link-local": "yalc link @tensorflow-models/facemesh",
