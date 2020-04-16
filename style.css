@@ -13,7 +13,7 @@ body {
     left: 0;
     top: 0;
     background-color: antiquewhite;
-    /* transform: scaleX(-1); */
+    transform: scaleX(-1);
 }
 
 #video {

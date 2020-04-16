@@ -5,19 +5,22 @@ let isRunning = false
 let model, loading = false
 
 self.onmessage = async (e) => {
+    let face;
     if (!model && !loading){
         loading = true
         model = await facemesh.load({ maxFaces: 1 });
         loading = false
     } 
     if (!isRunning && !loading ) {
-        if (!e.data) return
+        if (!e.data.pixels) return
         isRunning = true
         
-        let imageData = e.data
+        let imageData = new Uint8ClampedArray(e.data.pixels)
+        imageData = new ImageData(imageData, e.data.width, e.data.height)
+
+        // let imageData = e.data
         let videoWidth = imageData.width
         let videoHeight = imageData.height
-        // console.log(videoWidth, videoHeight);
         const predictions = await model.estimateFaces(imageData);
 
         if (predictions.length > 0) {
@@ -50,10 +53,11 @@ self.onmessage = async (e) => {
             const y = Math.round(minY)
             const h = Math.round(maxY - minY)
 
-            console.log(x,y,w,h);
-            self.postMessage({type:'done'})
+            face = {
+                x,y ,w,h
+            }
         }
-
+        self.postMessage({type:'done', face})
         isRunning = false
     } 
 

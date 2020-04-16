@@ -1,14 +1,26 @@
 import Stats from 'stats.js';
 
-let video, videoWidth, videoHeight, ctx, faceCtx, imgData, processs = false
+let video, videoWidth, videoHeight, ctx, faceCtx, imgData, processs = false, scale = 1
 let stats = new Stats();
 let canvas = document.getElementById('output');
 let faceCanvas = document.getElementById('face')
 const faceMeshWorker = new Worker('./facemesh.worker.js')
-faceMeshWorker.addEventListener('message', e => {
+
+faceMeshWorker.onmessage = (e) => {
     let data = e.data
     if (data.type == "done") processs = false
-})
+    if (e.data.face) drawRectang(e.data.face)
+}
+
+faceMeshWorker.onerror = (e) => {
+    console.log(`worker error:`,e);
+}
+
+function drawRectang(face) {
+    console.log(faceCanvas.width, faceCanvas.height);
+     
+}
+//END Worker
 function isMobile() {
     const isAndroid = /Android/i.test(navigator.userAgent);
     const isiOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -20,14 +32,30 @@ async function setupCamera() {
 
     const stream = await navigator.mediaDevices.getUserMedia({
         'audio': false,
-        'video': {
-            facingMode: 'user',
-            width: { exact: 1280 }, height: { exact: 720 }
-            // Only setting the video to a specified size in order to accommodate a
-            // point cloud, so on mobile devices accept the default size.
-            // width: mobile ? undefined : VIDEO_SIZE,
-            // height: mobile ? undefined : VIDEO_SIZE
-        },
+        video: {
+            facingMode: { 
+                // exact: 'environment'
+                exact: 'user'
+              },
+            width: { 
+                min: 1280,
+                ideal: 1920,
+                max: 2560,
+              },
+              height: {
+                min: 720,
+                ideal: 1080,
+                max: 1440
+              }
+          }
+        // 'video': {
+        //     facingMode: 'user',
+        //     width: { exact: 1280 }, height: { exact: 720 }
+        //     // Only setting the video to a specified size in order to accommodate a
+        //     // point cloud, so on mobile devices accept the default size.
+        //     // width: mobile ? undefined : VIDEO_SIZE,
+        //     // height: mobile ? undefined : VIDEO_SIZE
+        // },
     });
     video.srcObject = stream;
 
@@ -64,12 +92,12 @@ async function setupCamera() {
 
 })()
 
-async function renderPrediction() {
+async function renderPrediction() {    
     stats.begin();
     // const predictions = await model.estimateFaces(video);  
     // ctx.clearRect(0, 0, canvas.width, canvas.height);
-    let scale = Math.max(canvas.width / videoWidth, canvas.height / videoHeight)
-    var left = Math.floor((canvas.width / 2) - (videoWidth / 2) * scale);
+    scale = Math.max(canvas.width / videoWidth, canvas.height / videoHeight)
+    var left = Math.floor((canvas.width / 2) - (videoWidth / 2) * scale) + 10;
     var top = Math.floor((canvas.height / 2) - (videoHeight / 2) * scale);
     ctx.drawImage(video, left, top, videoWidth, videoHeight, 0, 0, canvas.width, canvas.height);
 
@@ -77,7 +105,11 @@ async function renderPrediction() {
         try {
             imgData = ctx.getImageData(0, 0, videoWidth, videoHeight)
             processs = true
-            faceMeshWorker.postMessage(imgData)
+            faceMeshWorker.postMessage({
+                pixels: imgData.data.buffer,
+                width: videoWidth,
+                height: videoHeight
+            }, [imgData.data.buffer])
         } catch (error) {
             processs = false
             console.log(error);
