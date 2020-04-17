@@ -1,121 +1,95 @@
 import Konva from 'konva'
 
+export default class FaceIDUI {
+    constructor({step = 8, width, height, rotate = 0}) {
+        this.step = 360/step
+        width = width | window.innerWidth;
+        height = height | window.innerHeight;
+        let color = 'green';
+        let inner = width / 2 - 30;
+        let outer = width / 2 - 30;
+        rotate = rotate|0;
+        var period = 2000;
+        this.split = 3;
 
-var width = window.innerWidth;
-var height = window.innerHeight;
+        this.map = new Map();
+        var stage = new Konva.Stage({
+            container: 'container',
+            width: width,
+            height: height
+        });
 
-var stage = new Konva.Stage({
-    container: 'container',
-    width: width,
-    height: height
-});
+        var staticLayer = new Konva.Layer();
 
-var staticLayer = new Konva.Layer();
+        for (let i = 0; i < 360 / this.split; i++) {
+            rotate = i * this.split;
 
-var map = new Map();
+            let arc2 = new Konva.Arc({
+                x: stage.width() / 2,
+                y: stage.height() / 2,
+                innerRadius: inner,
+                outerRadius: outer,
+                angle: 1,
+                rotation: rotate - 135,
+                fill: color,
+                stroke: color,
+                strokeWidth: 0
+            });
 
-// var ring = new Konva.Ring({
-//     x: stage.width() / 2,
-//     y: stage.height() / 2,
-//     innerRadius: stage.width()/2 - 50,
-//     outerRadius: stage.width()/2 - 40,
-//     fill: 'black',
-//     stroke: 'black',
-//     strokeWidth: 1
-// });
+            let arc0 = new Konva.Arc({
+                x: stage.width() / 2,
+                y: stage.height() / 2,
+                innerRadius: inner,
+                outerRadius: stage.width() / 2 - 20,
+                angle: 1,
+                rotation: rotate - 135,
+                fill: "#4c4c4c",
+                stroke: "gray",
+                strokeWidth: 0
+            });
 
-// staticLayer.add(ring);
+            staticLayer.add(arc0);
+            staticLayer.add(arc2);
 
-let color = 'green';
-let inner = stage.width() / 2 - 30;
-let outer = stage.width() / 2 - 30;
-let rotate = 0;
-var period = 500;
-let split = 3;
+            let anim = new Konva.Animation(function (frame) {
+                let amplitude = 1.3
+                arc2.attrs.strokeWidth = 1;
+                let scale = amplitude * Math.sin((frame.time * Math.PI) / period)//((frame.time * Math.PI) / period);
+                if (scale > 1) scale = 1;
+                arc2.attrs.outerRadius = 22 * scale + (stage.width() / 2 - 30);                
+                if (scale == 1) anim.stop();
+            }, staticLayer);
 
-setTimeout(() => {
-    
-    startAnim(1)
-}, 2000);
-
-
-// setTimeout(() => {
-    
-//     startAnim(2)
-// }, 4000);
-
-// setTimeout(() => {
-    
-//     startAnim(3)
-// }, 6000);
-
-// setTimeout(() => {
-    
-//     startAnim(4)
-// }, 8000);
-function startAnim(qua) {
-    let curr = (qua - 1) * 90;
-    const inter = setInterval(() => {
-        // console.log('curr', curr);
-        const anim = map.get(curr);
-        if (anim) anim.start();
-        curr += split;
-        if (inter && curr > (qua * 90)) {
-            clearInterval(inter);
+            this.map.set(rotate, anim);
         }
-    }, 10);
+        stage.add(staticLayer);
+
+    }
+
+    startAnim(qua, rev = false) {
+        let curr = rev ? qua * this.step : (qua - 1) * this.step;
+        const inter = setInterval(() => {
+    
+            const anim = this.map.get(curr);
+            if (anim) anim.start();
+            curr = rev? (curr - this.split): (curr + this.split);
+
+            if (inter && curr > (qua * this.step)) {
+                clearInterval(inter);
+            }
+        }, 50);
+    }
+    
+
+    // var ring = new Konva.Ring({
+    //     x: stage.width() / 2,
+    //     y: stage.height() / 2,
+    //     innerRadius: stage.width()/2 - 50,
+    //     outerRadius: stage.width()/2 - 40,
+    //     fill: 'black',
+    //     stroke: 'black',
+    //     strokeWidth: 1
+    // });
+
 }
-// let animLayer = new Konva.Layer();
-
-for (let i = 0; i < 360/split; i++) {
-    rotate = i * split;
-    // console.log('rotate ', rotate);
-
-    // if (rotate === 300) {
-    //     outer = 210;
-    // } else {
-    //     outer = 190;
-    // }
-
-    let arc2 = new Konva.Arc({
-        x: stage.width() / 2,
-        y: stage.height() / 2,
-        innerRadius: inner,
-        outerRadius: outer,
-        angle: 1,
-        rotation: rotate - 135,
-        fill: color,
-        stroke: color,
-        strokeWidth: 0
-    });
-
-    staticLayer.add(arc2);
-    // stage.add(staticLayer);
-
-    let anim = new Konva.Animation(function (frame) {
-        arc2.attrs.strokeWidth = 1;
-
-        let scale = ((frame.time * 2 * Math.PI) / period);
-        if (scale > 1) scale = 1;
-
-        // console.log(scale);
-
-        arc2.attrs.outerRadius = 20 * scale + (stage.width() / 2 - 30);
-
-        if (scale == 1) anim.stop();
-    }, staticLayer);
-
-    map.set(rotate, anim);
-}
-
-// add the layer to the stage
-stage.add(staticLayer);
-
-// const anim = map.get(180);
-// anim.start();
-
-// for (let i = 5; i <= 180; i += 5) {
-//     const anim = map.get(i);
-//     anim.start();
-// }
 

@@ -1,9 +1,13 @@
 import Stats from 'stats.js';
+import FaceIDUI from './draw'
 
 let video, videoWidth, videoHeight, ctx, faceCtx, imgData, processs = false, scale = 1, left = 0, top = 0
 let stats = new Stats();
 let canvas = document.getElementById('output');
-let faceCanvas = document.getElementById('face')
+const faceIdUI = new FaceIDUI({step: 8})
+faceIdUI.startAnim(2)
+faceIdUI.startAnim(1, true)
+
 
 const faceMeshWorker = new Worker('./facemesh.worker.js')
 
@@ -22,7 +26,7 @@ function drawRectang(face) {
     const {x, y, w, h } = face
     // // const [x1, y1, w1, h1] = [x, y, w, h ].map(n => Math.round(n ))
     // // console.log(faceCanvas.width, faceCanvas.height);
-    console.log(x , y , w, h);
+    // console.log(x , y , w, h);
     
     // // console.log(faceCanvas.width, x, y, w, h );
     // faceCtx.clearRect(0, 0, faceCanvas.width, faceCanvas.height);
@@ -44,10 +48,11 @@ async function setupCamera() {
     const stream = await navigator.mediaDevices.getUserMedia({
         'audio': false,
         video: {
-            facingMode: {
-                // exact: 'environment'
-                exact: 'user'
-            },
+            facingMode: 'user',
+            // facingMode: {
+            //     exact: 'environment'
+            //     // exact: 'user'
+            // },
             width: {
                 min: 1280,
                 ideal: 1920,
@@ -83,10 +88,17 @@ async function setupCamera() {
         return;
     }
     stats.showPanel(0);  // 0: fps, 1: ms, 2: mb, 3+: custom
+    
     // document.body.appendChild(stats.dom);
     // model = await facemesh.load({ maxFaces: 1 });
-    await setupCamera();
-    video.play();
+    try {
+        
+        await setupCamera();
+        video.play();
+    } catch (error) {
+        console.log(error);
+        
+    }
     ctx = canvas.getContext('2d');
     ctx.width = videoWidth = video.videoWidth;
     ctx.height = videoHeight = video.videoHeight;
@@ -107,8 +119,13 @@ async function setupCamera() {
     
     video.style.clipPath = `circle(${window.innerWidth/2 - 35}px at ${window.innerWidth/2}px ${window.innerHeight/2}px)`;
     
-
-    renderPrediction()
+    try {
+        renderPrediction()
+        
+    } catch (error) {
+        console.log(error);
+        
+    }
 
 })()
 
