@@ -1,9 +1,10 @@
 import Stats from 'stats.js';
 
-let video, videoWidth, videoHeight, ctx, faceCtx, imgData, processs = false, scale = 1
+let video, videoWidth, videoHeight, ctx, faceCtx, imgData, processs = false, scale = 1, left = 0, top = 0
 let stats = new Stats();
 let canvas = document.getElementById('output');
 let faceCanvas = document.getElementById('face')
+
 const faceMeshWorker = new Worker('./facemesh.worker.js')
 
 faceMeshWorker.onmessage = (e) => {
@@ -13,12 +14,22 @@ faceMeshWorker.onmessage = (e) => {
 }
 
 faceMeshWorker.onerror = (e) => {
-    console.log(`worker error:`,e);
+    console.log(`worker error:`, e);
 }
 
 function drawRectang(face) {
-    console.log(faceCanvas.width, faceCanvas.height);
-     
+    // scale = window.innerWidth/videoWidth
+    const {x, y, w, h } = face
+    // // const [x1, y1, w1, h1] = [x, y, w, h ].map(n => Math.round(n ))
+    // // console.log(faceCanvas.width, faceCanvas.height);
+    console.log(x , y , w, h);
+    
+    // // console.log(faceCanvas.width, x, y, w, h );
+    // faceCtx.clearRect(0, 0, faceCanvas.width, faceCanvas.height);
+    // faceCtx.beginPath();
+    // faceCtx.rect(x , y , w, h);
+    // faceCtx.stroke();
+    
 }
 //END Worker
 function isMobile() {
@@ -33,21 +44,21 @@ async function setupCamera() {
     const stream = await navigator.mediaDevices.getUserMedia({
         'audio': false,
         video: {
-            facingMode: { 
+            facingMode: {
                 // exact: 'environment'
                 exact: 'user'
-              },
-            width: { 
+            },
+            width: {
                 min: 1280,
                 ideal: 1920,
                 max: 2560,
-              },
-              height: {
+            },
+            height: {
                 min: 720,
                 ideal: 1080,
                 max: 1440
-              }
-          }
+            }
+        }
         // 'video': {
         //     facingMode: 'user',
         //     width: { exact: 1280 }, height: { exact: 720 }
@@ -72,43 +83,52 @@ async function setupCamera() {
         return;
     }
     stats.showPanel(0);  // 0: fps, 1: ms, 2: mb, 3+: custom
-    document.body.appendChild(stats.dom);
+    // document.body.appendChild(stats.dom);
     // model = await facemesh.load({ maxFaces: 1 });
     await setupCamera();
     video.play();
-    videoWidth = video.videoWidth;
-    videoHeight = video.videoHeight;
     ctx = canvas.getContext('2d');
+    ctx.width = videoWidth = video.videoWidth;
+    ctx.height = videoHeight = video.videoHeight;
     ctx.fillStyle = '#32EEDB';
     ctx.strokeStyle = '#32EEDB';
     ctx.lineWidth = 0.5;
+    ctx.width
 
-    faceCtx = faceCanvas.getContext('2d')
+    // faceCtx = faceCanvas.getContext('2d')
+    // faceCtx.strokeStyle = '#32EEDB';
+    // faceCtx.lineWidth = 0.5;
 
 
-    canvas.width = faceCanvas.width = window.innerWidth
-    canvas.height = faceCanvas.height = window.innerHeight
+
+    canvas.width = window.innerWidth
+    canvas.height = window.innerHeight
+    console.log(video.style.clipPath);
+    
+    video.style.clipPath = `circle(${window.innerWidth/2 - 35}px at ${window.innerWidth/2}px ${window.innerHeight/2}px)`;
+    
+
     renderPrediction()
 
 })()
 
-async function renderPrediction() {    
+async function renderPrediction() {
     stats.begin();
     // const predictions = await model.estimateFaces(video);  
     // ctx.clearRect(0, 0, canvas.width, canvas.height);
-    scale = Math.max(canvas.width / videoWidth, canvas.height / videoHeight)
-    var left = Math.floor((canvas.width / 2) - (videoWidth / 2) * scale) + 10;
-    var top = Math.floor((canvas.height / 2) - (videoHeight / 2) * scale);
-    ctx.drawImage(video, left, top, videoWidth, videoHeight, 0, 0, canvas.width, canvas.height);
+    // scale = Math.max(canvas.width / videoWidth, canvas.height / videoHeight)
+    // left = Math.floor((canvas.width / 2) - (videoWidth / 2) * scale)// + 10;
+    // top = Math.floor((canvas.height / 2) - (videoHeight / 2) * scale);
+    ctx.drawImage(video, 0,0 , canvas.width, canvas.height);
 
     if (!processs) {
         try {
-            imgData = ctx.getImageData(0, 0, videoWidth, videoHeight)
+            imgData = ctx.getImageData(0, 0, canvas.width, canvas.height)
             processs = true
             faceMeshWorker.postMessage({
                 pixels: imgData.data.buffer,
-                width: videoWidth,
-                height: videoHeight
+                width: canvas.width,
+                height: canvas.height
             }, [imgData.data.buffer])
         } catch (error) {
             processs = false

@@ -5,6 +5,7 @@ let isRunning = false
 let model, loading = false
 
 self.onmessage = async (e) => {
+
     let face;
     if (!model && !loading){
         loading = true
@@ -13,6 +14,11 @@ self.onmessage = async (e) => {
     } 
     if (!isRunning && !loading ) {
         if (!e.data.pixels) return
+
+        //
+        var t0 = performance.now()
+        //
+
         isRunning = true
         
         let imageData = new Uint8ClampedArray(e.data.pixels)
@@ -54,11 +60,14 @@ self.onmessage = async (e) => {
             const h = Math.round(maxY - minY)
 
             face = {
-                x,y ,w,h
+                x,y ,w,h:w*1.2
             }
         }
         self.postMessage({type:'done', face})
         isRunning = false
+
+        var t1 = performance.now()
+        // console.log("Call to face took " + (t1 - t0) + " milliseconds.")
     } 
 
 }

@@ -159,7 +159,6 @@ async function drawScatter(predictions) {
     let verticalAngle = Math.atan2(normalVec[1], normalVec[2]) * 180 / Math.PI
 
 
-
     if (preLog) showPreLogs(horizontalAngle, verticalAngle)
 
     // if (!mobile) {

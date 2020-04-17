@@ -16,6 +16,7 @@
     "core-js": "3",
     "gh-pages": "^2.2.0",
     "jquery": "^3.5.0",
+    "konva": "^4.2.2",
     "math.js": "^1.1.46",
     "popper.js": "^1.16.1",
     "scatter-gl": "^0.0.4",
@@ -23,6 +24,7 @@
     "three": "^0.115.0"
   },
   "scripts": {
+    "test": "cross-env NODE_ENV=development parcel test.html --target browser",
     "watch": "yarn link-local; cross-env NODE_ENV=development parcel new.html --cert ./ssl/10.136.230.110.pem --key  ./ssl/10.136.230.110-key.pem --no-hmr --target browser --global window",
     "build": "rm -rf dist/face.* dist/crop.*;yarn link-local; cross-env NODE_ENV=production parcel build index.html --no-source-maps --target browser --public-url ./",
     "lint": "eslint .",

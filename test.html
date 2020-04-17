@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <!-- <style>
+        canvas {
+            width: 400px;
+            height: 400px;
+        }
+    </style> -->
+</head>
+
+<body>
+    <canvas id="canvas"></canvas>
+</body>
+
+
+<script>
+    // canvas related references
+    var canvas = document.getElementById("canvas");
+    var ctx = canvas.getContext("2d");
+
+    // set the line width used to draw the arc segments
+    ctx.lineWidth = 20;
+
+    // variables related to drawing arc segments
+    var PI = Math.PI;
+    var PI2 = PI * 2;
+    var cx = 70;
+    var cy = 70;
+    var radius = 50;
+    var arcRadians = PI2 / 50;
+    var spacingRadians = PI2 / 100;
+    var arcCount = 16;
+    var currentAngle = 0;
+
+    // Draw arc segments from a centerpoint at a specified radius (cx,cy,radius)
+    // Draw the specified count of arc segments (arcCount)
+    // from the current radian angle (currentAngle)
+    // with each segment having the specified arc (arcRadians)
+    // and reducing that arc to allow specified spacing (spacingRadians)
+    // for (var i = 0; i < arcCount; i++) {
+    while (currentAngle < PI2) {
+        // calculate the starting and ending angle of an arc segment
+        // allow for spacing between arcs
+        var startingAngle = currentAngle;
+        var endingAngle = startingAngle + arcRadians - spacingRadians;
+
+
+        // draw one arc segment
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, startingAngle, endingAngle);
+        ctx.strokeStyle = "green"//randomColor();
+        ctx.stroke();
+
+        console.log(startingAngle, endingAngle);
+        
+        // increment the current angle for the next arc
+        currentAngle += arcRadians;
+    }
+
+
+    // }
+
+    // utility function -- generate a random color
+    function randomColor() {
+        return ('#' + Math.floor(Math.random() * 16777215).toString(16));
+    }
+
+
+</script>
+
+</html>

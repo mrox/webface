@@ -1,24 +1,30 @@
 Arguments: 
-  /usr/local/Cellar/node/13.12.0/bin/node /usr/local/Cellar/yarn/1.22.4/libexec/bin/yarn.js add popper.js
+  /home/tuyentt3/.nvm/versions/node/v10.20.1/bin/node /usr/share/yarn/bin/yarn.js add konvajs
 
 PATH: 
-  /var/folders/ty/gvzl_p1n0kldlwklyh6z_wvh0000gn/T/yarn--1586507507438-0.7931415710176155:/Users/tuyentran/Documents/tfjs/face/node_modules/.bin:/Users/tuyentran/.config/yarn/link/node_modules/.bin:/usr/local/Cellar/node/13.12.0/libexec/lib/node_modules/npm/bin/node-gyp-bin:/usr/local/Cellar/node/13.12.0/lib/node_modules/npm/bin/node-gyp-bin:/usr/local/Cellar/node/13.12.0/bin/node_modules/npm/bin/node-gyp-bin:/usr/local/opt/icu4c/sbin:/usr/local/opt/icu4c/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/go/bin:/opt/X11/bin:/usr/local/go:/Users/tuyentran/go:/Users/tuyentran/go/bin:/usr/local/go:/Users/tuyentran/go:/Users/tuyentran/go/bin
+  /home/tuyentt3/.nvm/versions/node/v10.20.1/bin:/home/tuyentt3/.npm-global/bin:/home/tuyentt3/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/usr/local/go/bin:/usr/local/share/npm/bin
 
 Yarn version: 
   1.22.4
 
 Node version: 
-  13.12.0
+  10.20.1
 
 Platform: 
-  darwin x64
+  linux x64
 
 Trace: 
-  Error: unable to get local issuer certificate
-      at TLSSocket.onConnectSecure (_tls_wrap.js:1492:34)
-      at TLSSocket.emit (events.js:315:20)
-      at TLSSocket._finishInit (_tls_wrap.js:935:8)
-      at TLSWrap.ssl.onhandshakedone (_tls_wrap.js:693:12)
+  Error: https://registry.yarnpkg.com/konvajs: Not found
+      at Request.params.callback [as _callback] (/usr/share/yarn/lib/cli.js:66987:18)
+      at Request.self.callback (/usr/share/yarn/lib/cli.js:140748:22)
+      at Request.emit (events.js:198:13)
+      at Request.<anonymous> (/usr/share/yarn/lib/cli.js:141720:10)
+      at Request.emit (events.js:198:13)
+      at IncomingMessage.<anonymous> (/usr/share/yarn/lib/cli.js:141642:12)
+      at Object.onceWrapper (events.js:286:20)
+      at IncomingMessage.emit (events.js:203:15)
+      at endReadableNT (_stream_readable.js:1145:12)
+      at process._tickCallback (internal/process/next_tick.js:63:19)
 
 npm manifest: 
   {
@@ -38,13 +44,16 @@ npm manifest:
       "@tensorflow/tfjs-core": "^1.6.1",
       "core-js": "3",
       "gh-pages": "^2.2.0",
+      "jquery": "^3.5.0",
       "math.js": "^1.1.46",
+      "popper.js": "^1.16.1",
       "scatter-gl": "^0.0.4",
       "stats.js": "^0.17.0",
       "three": "^0.115.0"
     },
     "scripts": {
-      "watch": "yarn link-local; cross-env NODE_ENV=development parcel index.html --no-hmr --target browser --global window",
+      "test": "cross-env NODE_ENV=development parcel test.html --target browser",
+      "watch": "yarn link-local; cross-env NODE_ENV=development parcel new.html --cert ./ssl/10.136.230.110.pem --key  ./ssl/10.136.230.110-key.pem --no-hmr --target browser --global window",
       "build": "rm -rf dist/face.* dist/crop.*;yarn link-local; cross-env NODE_ENV=production parcel build index.html --no-source-maps --target browser --public-url ./",
       "lint": "eslint .",
       "link-local": "yalc link @tensorflow-models/facemesh",
@@ -82,7 +91,7 @@ npm manifest:
     "eslintIgnore": [
       "dist/"
     ],
-    "externals":{
+    "externals": {
       "opencv.js": false
     }
   }
@@ -3845,6 +3854,11 @@ Lockfile:
     resolved "https://registry.yarnpkg.com/isobject/-/isobject-3.0.1.tgz#4e431e92b11a9731636aa1f9c8d1ccbcfdab78df"
     integrity sha1-TkMekrEalzFjaqH5yNHMvP2reN8=
   
+  jquery@^3.5.0:
+    version "3.5.0"
+    resolved "https://registry.yarnpkg.com/jquery/-/jquery-3.5.0.tgz#9980b97d9e4194611c36530e7dc46a58d7340fc9"
+    integrity sha512-Xb7SVYMvygPxbFMpTFQiHh1J7HClEaThguL15N/Gg37Lri/qKyhRGZYzHRyLH8Stq3Aow0LsHO2O2ci86fCrNQ==
+  
   js-base64@^2.1.9:
     version "2.5.2"
     resolved "https://registry.yarnpkg.com/js-base64/-/js-base64-2.5.2.tgz#313b6274dda718f714d00b3330bbae6e38e90209"
@@ -4760,6 +4774,11 @@ Lockfile:
     version "7.0.0"
     resolved "https://registry.yarnpkg.com/pluralize/-/pluralize-7.0.0.tgz#298b89df8b93b0221dbf421ad2b1b1ea23fc6777"
     integrity sha512-ARhBOdzS3e41FbkW/XWrTEtukqqLoK5+Z/4UeDaLuSW+39JPeFgs4gCGqsrJHVZX0fUrx//4OF0K1CUGwlIFow==
+  
+  popper.js@^1.16.1:
+    version "1.16.1"
+    resolved "https://registry.yarnpkg.com/popper.js/-/popper.js-1.16.1.tgz#2a223cb3dc7b6213d740e40372be40de43e65b1b"
+    integrity sha512-Wb4p1J4zyFTbM+u6WuO4XstYx4Ky9Cewe4DWrel7B0w6VVICvPwdOpotjzcf6eD8TsckVnIMNONQyPIUFOUbCQ==
   
   posix-character-classes@^0.1.0:
     version "0.1.1"
