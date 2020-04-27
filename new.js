@@ -45,8 +45,11 @@ function resetDraw() {
 
 faceMeshWorker.onmessage = (e) => {
     let data = e.data
+   
     if (data.type == "done") processs = false
-    if (data.type == 'draw' && !draws.includes(data.i)) {
+    if (data.type == 'draw' && !draws.includes(data.i)) {   
+        console.log(data.data);
+             
         if(draws.length == 1) startProcess()
         if(draws.length >= step -1 ) endProcess()
         draws.push(data.i)

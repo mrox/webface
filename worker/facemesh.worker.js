@@ -11,20 +11,20 @@ let bitmap
 let faceAttributes = new FaceAttributes()
 let faces = [];
 let numFaces = 8
-let step = 360/numFaces
+let step = 360 / numFaces
 let current = 0
 let index = 0
 
 while (current < 360) {
     faces[index] = {
-        min: index - step/2 + current,
-        max: index + 1 + step/2 + current
+        min: index - step / 2 + current,
+        max: index + 1 + step / 2 + current
     }
     current += step
     index += 1
 }
 
-function resetFaces(){
+function resetFaces() {
     console.log('reset face');
     faces.forEach(f => {
         delete f.value
@@ -32,13 +32,13 @@ function resetFaces(){
 }
 
 self.onmessage = async (e) => {
-    
-    if(e.data.type){
+
+    if (e.data.type) {
         switch (e.data.type) {
             case 'reset':
                 resetFaces()
                 break;
-        
+
             default:
                 break;
         }
@@ -81,9 +81,22 @@ self.onmessage = async (e) => {
         if (predictions.length > 0) {
 
             const pointsData = predictions.map(prediction => {
+
                 let scaledMesh = prediction.scaledMesh;
                 return scaledMesh.map(point => ([-point[0], -point[1], -point[2]]));
             });
+
+            const p = predictions[0]
+            const box = p.boundingBox
+            const topLeft = box.topLeft[0]
+            const bottomRight = box.bottomRight[0]
+            //lấy toạ độ face
+            const wb = Math.round(bottomRight[0] - topLeft[0])
+            const xb = Math.round(canvas.width - bottomRight[0])
+            const yb = Math.round(topLeft[1])
+            const hb = Math.round(bottomRight[1] - topLeft[1])
+
+
             let flattenedPointsData = [];
             for (let i = 0; i < pointsData.length; i++) {
                 flattenedPointsData = flattenedPointsData.concat(pointsData[i]);
@@ -120,8 +133,8 @@ self.onmessage = async (e) => {
 
             if (w > 240) {
                 let { angle, distance } = faceAttributes.angle()
-
-                keepPhotos({ angle, distance })
+                let coverData = context.getImageData(xb, yb, wb, hb)
+                keepPhotos({ angle, distance, coverData })
 
                 face = {
                     x, y, w, h: w * 1.2
@@ -133,24 +146,24 @@ self.onmessage = async (e) => {
         isRunning = false
 
         t3 = performance.now()
-        console.log(t2 - t0 , t2 - t1);
-        
+        console.log(t2 - t0, t2 - t1);
+
     }
 
 }
 
-self.keepPhotos = ({ angle, distance }) => {
 
+self.keepPhotos = ({ angle, distance, coverData }) => {
 
     faces.forEach((v, i) => {
-        if(distance > 30 && angle > v.min && angle < v.max)
-        {
+        if (distance > 30 && angle > v.min && angle < v.max) {
             v.value = angle
-            self.postMessage({ type: 'draw', i: i + 1 })
+            v.face = coverData
+            self.postMessage({ type: 'draw', i: i + 1, data: v })
             // console.log(faces);
         }
     });
-    
+
 
 
 }
