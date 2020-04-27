@@ -4,30 +4,78 @@ import FaceAttributes from '../ultis/faces'
 
 let isRunning = false
 let model, loading = false
+var canvas
+var context
+let imageData
+let bitmap
+let faceAttributes = new FaceAttributes()
+let faces = [];
+let numFaces = 8
+let step = 360/numFaces
+let current = 0
+let index = 0
+
+while (current < 360) {
+    faces[index] = {
+        min: index - step/2 + current,
+        max: index + 1 + step/2 + current
+    }
+    current += step
+    index += 1
+}
+
+function resetFaces(){
+    console.log('reset face');
+    faces.forEach(f => {
+        delete f.value
+    });
+}
 
 self.onmessage = async (e) => {
     
+    if(e.data.type){
+        switch (e.data.type) {
+            case 'reset':
+                resetFaces()
+                break;
+        
+            default:
+                break;
+        }
+        return
+    }
     let face;
-    if (!model && !loading){
+    if (!model && !loading) {
+        console.log(`load model`);
         loading = true
         model = await facemesh.load({ maxFaces: 1 });
         loading = false
-    } 
-    if (!isRunning && !loading ) {
-        if (!e.data.pixels) return
-
-        //
+        console.log(`load done`);
+    }
+    if (!isRunning && !loading) {
         var t0 = performance.now()
-        //
+        var t1, t2, t3
 
         isRunning = true
-        
-        let imageData = new Uint8ClampedArray(e.data.pixels)
-        imageData = new ImageData(imageData, e.data.width, e.data.height)
+        bitmap = e.data
 
-        // let imageData = e.data
-        let videoWidth = imageData.width
-        let videoHeight = imageData.height
+        if (!canvas && !context) {
+            canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
+            context = canvas.getContext('2d');
+        }
+
+        try {
+            context.drawImage(bitmap, 0, 0);
+            imageData = context.getImageData(0, 0, bitmap.width, bitmap.height);
+        } catch (error) {
+            console.log(error);
+
+            self.postMessage({ type: 'done', face })
+            isRunning = false
+            return
+        }
+
+
         const predictions = await model.estimateFaces(imageData);
 
         if (predictions.length > 0) {
@@ -39,9 +87,12 @@ self.onmessage = async (e) => {
             let flattenedPointsData = [];
             for (let i = 0; i < pointsData.length; i++) {
                 flattenedPointsData = flattenedPointsData.concat(pointsData[i]);
-                // console.log(pointsData[i]);
 
             }
+            await faceAttributes.init({
+                flattenedPointsData,
+                imageData
+            })
 
             let minX = 100000
             let minY = 100000
@@ -56,25 +107,50 @@ self.onmessage = async (e) => {
             })
 
             const w = Math.round(maxX - minX)
-            const x = Math.round(videoWidth - maxX)
+            const x = Math.round(bitmap.width - maxX)
             const y = Math.round(minY)
             const h = Math.round(maxY - minY)
-            
-            const faceAttributes = new FaceAttributes({
-                flattenedPointsData,
-                imageData
-            })
-            faceAttributes.angle()
-            
-            face = {
-                x,y ,w,h:w*1.2
+
+            //TODO: Cần Load worker ngay từ đầu 
+            t1 = performance.now()
+
+            let blur = faceAttributes.checkBlur()
+            t2 = performance.now()
+            console.log(blur);
+
+            if (w > 240) {
+                let { angle, distance } = faceAttributes.angle()
+
+                keepPhotos({ angle, distance })
+
+                face = {
+                    x, y, w, h: w * 1.2
+                }
             }
         }
-        self.postMessage({type:'done', face})
+
+        self.postMessage({ type: 'done', face })
         isRunning = false
 
-        var t1 = performance.now()
-        // console.log("Call to face took " + (t1 - t0) + " milliseconds.")
-    } 
+        t3 = performance.now()
+        console.log(t2 - t0 , t2 - t1);
+        
+    }
+
+}
+
+self.keepPhotos = ({ angle, distance }) => {
+
+
+    faces.forEach((v, i) => {
+        if(distance > 30 && angle > v.min && angle < v.max)
+        {
+            v.value = angle
+            self.postMessage({ type: 'draw', i: i + 1 })
+            // console.log(faces);
+        }
+    });
+    
+
 
 }

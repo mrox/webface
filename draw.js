@@ -3,14 +3,20 @@ import Konva from 'konva'
 export default class FaceIDUI {
     constructor({step = 8, width, height, rotate = 0}) {
         this.step = 360/step
-        width = width | window.innerWidth;
-        height = height | window.innerHeight;
+        this.split = 3;
+        this.width = width
+        this.height = height
+        this.rotate = rotate
+    }
+
+    init(){
+        
+        let width = this.width | window.innerWidth;
+        let height = this.height | window.innerHeight;
         let color = 'green';
         let inner = width / 2 - 30;
         let outer = width / 2 - 30;
-        rotate = rotate|0;
-        var period = 2000;
-        this.split = 3;
+        var period = 1000;
 
         this.map = new Map();
         var stage = new Konva.Stage({
@@ -22,7 +28,7 @@ export default class FaceIDUI {
         var staticLayer = new Konva.Layer();
 
         for (let i = 0; i < 360 / this.split; i++) {
-            rotate = i * this.split;
+            this.rotate = i * this.split;
 
             let arc2 = new Konva.Arc({
                 x: stage.width() / 2,
@@ -30,7 +36,7 @@ export default class FaceIDUI {
                 innerRadius: inner,
                 outerRadius: outer,
                 angle: 1,
-                rotation: rotate - 135,
+                rotation: this.rotate - 135,
                 fill: color,
                 stroke: color,
                 strokeWidth: 0
@@ -42,7 +48,7 @@ export default class FaceIDUI {
                 innerRadius: inner,
                 outerRadius: stage.width() / 2 - 20,
                 angle: 1,
-                rotation: rotate - 135,
+                rotation: this.rotate - 135,
                 fill: "#4c4c4c",
                 stroke: "gray",
                 strokeWidth: 0
@@ -60,10 +66,9 @@ export default class FaceIDUI {
                 if (scale == 1) anim.stop();
             }, staticLayer);
 
-            this.map.set(rotate, anim);
+            this.map.set(this.rotate, anim);
         }
         stage.add(staticLayer);
-
     }
 
     startAnim(qua, rev = false) {
@@ -77,7 +82,7 @@ export default class FaceIDUI {
             if (inter && curr > (qua * this.step)) {
                 clearInterval(inter);
             }
-        }, 50);
+        }, 10);
     }
     
 

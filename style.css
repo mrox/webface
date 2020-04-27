@@ -19,10 +19,15 @@ body {
 
 #video {
     top: 0;
-    background-color: black;
+    left: 0;
     /* clip-path: circle(35vw at center); */
     /* clip-path: circle(30% at 50% 50%); */
-    background-attachment: black;
+    /* clip-path: polygon(
+    50% -20%,
+    120% 50%,
+    50% 120%,
+    -20% 50%
+  ); */
     -webkit-transform: scaleX(-1);
             transform: scaleX(-1);
             /* visibility: hidden; */
@@ -55,4 +60,18 @@ canvas {
     top: 0;
     left: 0;
     width: 100vw;
+}
+
+#reset_div {
+    position: fixed;
+    right: 10px;
+    top: 10px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: row;
+    color: white;
+
+}
+.top-item {
+    padding: 0 4px 0 4px;
 }

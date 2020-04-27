@@ -3,38 +3,61 @@ import FaceIDUI from './draw'
 
 let video, videoWidth, videoHeight, ctx, faceCtx, imgData, processs = false, scale = 1, left = 0, top = 0
 let stats = new Stats();
-let canvas = document.getElementById('output');
-const faceIdUI = new FaceIDUI({step: 8})
-faceIdUI.startAnim(2)
-faceIdUI.startAnim(1, true)
+let imageCapture// = new ImageCapture(videoTrack);
 
+//show time process
+let processTime = 0;
+let timmerProcess;
+let timeElement = document.getElementById('time')
 
-const faceMeshWorker = new Worker('./facemesh.worker.js')
+//
+let draws = []
+let step = 8
+let faceIdUI = new FaceIDUI({ step }); faceIdUI.init()
+let resetBtn = document.getElementById('reset')
+const faceMeshWorker = new Worker('./worker/facemesh.worker.js')
+// const faceMeshWorker2 = new Worker('./worker/facemesh.worker.js')
+resetBtn.onclick = () => {
+    console.log(`reset`);
+    resetDraw()
+    endProcess()
+}
+
+function startProcess() {
+    timeElement.innerHTML = ``
+    timmerProcess = setInterval(() => {
+        processTime += 1
+        timeElement.innerHTML = `${processTime}s`
+    }, 1000);
+}
+
+function endProcess(){
+    processTime = 0
+    clearInterval(timmerProcess)
+    timmerProcess = null
+}
+
+function resetDraw() {
+    draws = []
+    faceIdUI.init()
+    faceMeshWorker.postMessage({type:'reset'})
+}
 
 faceMeshWorker.onmessage = (e) => {
     let data = e.data
     if (data.type == "done") processs = false
-    if (e.data.face) drawRectang(e.data.face)
+    if (data.type == 'draw' && !draws.includes(data.i)) {
+        if(draws.length == 1) startProcess()
+        if(draws.length >= step -1 ) endProcess()
+        draws.push(data.i)
+        faceIdUI.startAnim(data.i)
+    }
 }
 
 faceMeshWorker.onerror = (e) => {
     console.log(`worker error:`, e);
 }
 
-function drawRectang(face) {
-    // scale = window.innerWidth/videoWidth
-    const {x, y, w, h } = face
-    // // const [x1, y1, w1, h1] = [x, y, w, h ].map(n => Math.round(n ))
-    // // console.log(faceCanvas.width, faceCanvas.height);
-    // console.log(x , y , w, h);
-    
-    // // console.log(faceCanvas.width, x, y, w, h );
-    // faceCtx.clearRect(0, 0, faceCanvas.width, faceCanvas.height);
-    // faceCtx.beginPath();
-    // faceCtx.rect(x , y , w, h);
-    // faceCtx.stroke();
-    
-}
 //END Worker
 function isMobile() {
     const isAndroid = /Android/i.test(navigator.userAgent);
@@ -53,16 +76,18 @@ async function setupCamera() {
             //     exact: 'environment'
             //     // exact: 'user'
             // },
-            width: {
-                min: 1280,
-                ideal: 1920,
-                max: 2560,
-            },
-            height: {
-                min: 720,
-                ideal: 1080,
-                max: 1440
-            }
+            width: 1024,
+            // {
+            //     // min: 1280,
+            //     // ideal: 1280,
+            //     // max: 2560,
+            // },
+            height: 1024
+            // {
+            //     // min: 720,
+            //     // ideal: 1280,
+            //     // max: 1440
+            // }
         }
         // 'video': {
         //     facingMode: 'user',
@@ -74,9 +99,9 @@ async function setupCamera() {
         // },
     });
     video.srcObject = stream;
-
     return new Promise((resolve) => {
         video.onloadedmetadata = () => {
+            imageCapture = new ImageCapture(stream.getVideoTracks()[0]);
             resolve(video);
         };
     });
@@ -88,65 +113,42 @@ async function setupCamera() {
         return;
     }
     stats.showPanel(0);  // 0: fps, 1: ms, 2: mb, 3+: custom
-    
-    // document.body.appendChild(stats.dom);
+
+    document.body.appendChild(stats.dom);
     // model = await facemesh.load({ maxFaces: 1 });
     try {
-        
+
         await setupCamera();
         video.play();
     } catch (error) {
         console.log(error);
-        
+
     }
-    ctx = canvas.getContext('2d');
-    ctx.width = videoWidth = video.videoWidth;
-    ctx.height = videoHeight = video.videoHeight;
-    ctx.fillStyle = '#32EEDB';
-    ctx.strokeStyle = '#32EEDB';
-    ctx.lineWidth = 0.5;
-    ctx.width
-
-    // faceCtx = faceCanvas.getContext('2d')
-    // faceCtx.strokeStyle = '#32EEDB';
-    // faceCtx.lineWidth = 0.5;
 
 
+    video.style.clipPath = `circle(${window.innerWidth / 2 - 35}px at ${window.innerWidth / 2}px ${window.innerHeight / 2}px)`;
 
-    canvas.width = window.innerWidth
-    canvas.height = window.innerHeight
-    console.log(video.style.clipPath);
-    
-    video.style.clipPath = `circle(${window.innerWidth/2 - 35}px at ${window.innerWidth/2}px ${window.innerHeight/2}px)`;
-    
     try {
         renderPrediction()
-        
+
     } catch (error) {
         console.log(error);
-        
+
     }
 
 })()
 
 async function renderPrediction() {
     stats.begin();
-    // const predictions = await model.estimateFaces(video);  
-    // ctx.clearRect(0, 0, canvas.width, canvas.height);
-    // scale = Math.max(canvas.width / videoWidth, canvas.height / videoHeight)
-    // left = Math.floor((canvas.width / 2) - (videoWidth / 2) * scale)// + 10;
-    // top = Math.floor((canvas.height / 2) - (videoHeight / 2) * scale);
-    ctx.drawImage(video, 0,0 , canvas.width, canvas.height);
 
     if (!processs) {
+
         try {
-            imgData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+
+            imgData = await imageCapture.grabFrame()
+            if (imgData.width == 0) return
             processs = true
-            faceMeshWorker.postMessage({
-                pixels: imgData.data.buffer,
-                width: canvas.width,
-                height: canvas.height
-            }, [imgData.data.buffer])
+            faceMeshWorker.postMessage(imgData, [imgData])
         } catch (error) {
             processs = false
             console.log(error);
