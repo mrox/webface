@@ -27,8 +27,7 @@ export default class FaceIDUI {
 
         var staticLayer = new Konva.Layer();
 
-        for (let i = 0; i < 360 / this.split; i++) {
-            this.rotate = i * this.split;
+        for (let i = 0; i < 360 ; i += 6) {
 
             let arc2 = new Konva.Arc({
                 x: stage.width() / 2,
@@ -36,7 +35,7 @@ export default class FaceIDUI {
                 innerRadius: inner,
                 outerRadius: outer,
                 angle: 1,
-                rotation: this.rotate - 135,
+                rotation: i - 135,
                 fill: color,
                 stroke: color,
                 strokeWidth: 0
@@ -48,7 +47,7 @@ export default class FaceIDUI {
                 innerRadius: inner,
                 outerRadius: stage.width() / 2 - 20,
                 angle: 1,
-                rotation: this.rotate - 135,
+                rotation: i - 135,
                 fill: "#4c4c4c",
                 stroke: "gray",
                 strokeWidth: 0
@@ -66,7 +65,7 @@ export default class FaceIDUI {
                 if (scale == 1) anim.stop();
             }, staticLayer);
 
-            this.map.set(this.rotate, anim);
+            this.map.set(i, anim);
         }
         stage.add(staticLayer);
     }

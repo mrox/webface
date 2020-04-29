@@ -129,16 +129,18 @@ self.onmessage = async (e) => {
 
             let blur = faceAttributes.checkBlur()
             t2 = performance.now()
-            console.log(blur);
+            // console.log(blur);
 
-            if (w > 240) {
+            if (w > 240 && w < 1024) {
                 let { angle, distance } = faceAttributes.angle()
-                let coverData = context.getImageData(xb, yb, wb, hb)
-                keepPhotos({ angle, distance, coverData })
+                // let coverData = context.getImageData(xb, yb, wb, hb)
+               
+                if(imageData)
+                keepPhotos({ angle, distance, coverData:imageData })
 
-                face = {
-                    x, y, w, h: w * 1.2
-                }
+                // face = {
+                //     x, y, w, h: w * 1.2
+                // }
             }
         }
 
@@ -146,8 +148,6 @@ self.onmessage = async (e) => {
         isRunning = false
 
         t3 = performance.now()
-        console.log(t2 - t0, t2 - t1);
-
     }
 
 }

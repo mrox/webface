@@ -4,19 +4,27 @@ import FaceIDUI from './draw'
 let video, videoWidth, videoHeight, ctx, faceCtx, imgData, processs = false, scale = 1, left = 0, top = 0
 let stats = new Stats();
 let imageCapture// = new ImageCapture(videoTrack);
-
 //show time process
 let processTime = 0;
 let timmerProcess;
+let resultE = document.getElementById('result');
 let timeElement = document.getElementById('time')
-
+let circleTutorial = document.getElementById('circle')
 //
 let draws = []
 let step = 8
 let faceIdUI = new FaceIDUI({ step }); faceIdUI.init()
 let resetBtn = document.getElementById('reset')
 const faceMeshWorker = new Worker('./worker/facemesh.worker.js')
-// const faceMeshWorker2 = new Worker('./worker/facemesh.worker.js')
+const genImageWorker = new Worker('./worker/genImage.worker.js')
+
+for (let index = 1; index <= 8; index++) {
+    
+    
+    faceIdUI.startAnim(index)
+}
+
+
 resetBtn.onclick = () => {
     console.log(`reset`);
     resetDraw()
@@ -31,7 +39,7 @@ function startProcess() {
     }, 1000);
 }
 
-function endProcess(){
+function endProcess() {
     processTime = 0
     clearInterval(timmerProcess)
     timmerProcess = null
@@ -40,25 +48,37 @@ function endProcess(){
 function resetDraw() {
     draws = []
     faceIdUI.init()
-    faceMeshWorker.postMessage({type:'reset'})
+    faceMeshWorker.postMessage({ type: 'reset' })
 }
 
-faceMeshWorker.onmessage = (e) => {
+faceMeshWorker.onmessage = async (e) => {
     let data = e.data
-   
+
     if (data.type == "done") processs = false
-    if (data.type == 'draw' && !draws.includes(data.i)) {   
-        console.log(data.data);
-             
-        if(draws.length == 1) startProcess()
-        if(draws.length >= step -1 ) endProcess()
+    if (data.type == 'draw' && !draws.includes(data.i)) {
+        genImageWorker.postMessage(data.data.face)
+
+        if (draws.length == 1) startProcess()
+        if (draws.length >= step - 1) endProcess()
         draws.push(data.i)
         faceIdUI.startAnim(data.i)
+
     }
 }
 
 faceMeshWorker.onerror = (e) => {
     console.log(`worker error:`, e);
+}
+
+//Gen Image worker
+genImageWorker.onmessage = (e) => {
+    let imgDiv = document.createElement('div')
+    imgDiv.className = 'cover'
+    let img = document.createElement('img')
+
+    img.src = e.data
+    imgDiv.appendChild(img)
+    resultE.appendChild(imgDiv)
 }
 
 //END Worker
@@ -70,36 +90,13 @@ function isMobile() {
 
 async function setupCamera() {
     video = document.getElementById('video');
-
     const stream = await navigator.mediaDevices.getUserMedia({
         'audio': false,
         video: {
             facingMode: 'user',
-            // facingMode: {
-            //     exact: 'environment'
-            //     // exact: 'user'
-            // },
             width: 1024,
-            // {
-            //     // min: 1280,
-            //     // ideal: 1280,
-            //     // max: 2560,
-            // },
             height: 1024
-            // {
-            //     // min: 720,
-            //     // ideal: 1280,
-            //     // max: 1440
-            // }
         }
-        // 'video': {
-        //     facingMode: 'user',
-        //     width: { exact: 1280 }, height: { exact: 720 }
-        //     // Only setting the video to a specified size in order to accommodate a
-        //     // point cloud, so on mobile devices accept the default size.
-        //     // width: mobile ? undefined : VIDEO_SIZE,
-        //     // height: mobile ? undefined : VIDEO_SIZE
-        // },
     });
     video.srcObject = stream;
     return new Promise((resolve) => {
@@ -115,28 +112,21 @@ async function setupCamera() {
         console.log("éo chạy đc");
         return;
     }
+
     stats.showPanel(0);  // 0: fps, 1: ms, 2: mb, 3+: custom
-
     document.body.appendChild(stats.dom);
-    // model = await facemesh.load({ maxFaces: 1 });
+    circleTutorial.style.width = faceIdUI.innerWidth
+    circleTutorial.style.height = faceIdUI.innerWidth
+    
     try {
-
         await setupCamera();
         video.play();
-    } catch (error) {
-        console.log(error);
-
-    }
-
-
-    video.style.clipPath = `circle(${window.innerWidth / 2 - 35}px at ${window.innerWidth / 2}px ${window.innerHeight / 2}px)`;
-
-    try {
+        video.style.clipPath = `circle(${window.innerWidth / 2 - 35}px at ${window.innerWidth / 2}px ${window.innerHeight / 2}px)`;
+        // circleTutorial.style.clipPath = `circle(${window.innerWidth / 2 - 35}px at ${window.innerWidth / 2}px ${window.innerHeight / 2}px)`;
         renderPrediction()
 
     } catch (error) {
         console.log(error);
-
     }
 
 })()
@@ -145,7 +135,6 @@ async function renderPrediction() {
     stats.begin();
 
     if (!processs) {
-
         try {
 
             imgData = await imageCapture.grabFrame()

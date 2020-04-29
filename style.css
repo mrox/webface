@@ -75,3 +75,40 @@ canvas {
 .top-item {
     padding: 0 4px 0 4px;
 }
+
+#result {
+    z-index: 1100;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100vw;
+    height: auto;
+    display: flex;
+    flex-direction: row;
+    overflow-x: scroll;
+}
+
+.cover {
+    width: 100px;
+    height: 120px;
+}
+
+.cover > img {
+    padding: 3px;
+    width: 100px;
+    height: 120px;
+    object-fit: cover;
+}
+#circle {
+    position: fixed;
+    width: calc(100vw - 70px);
+    height: calc(100vw - 70px);;
+    background-image: radial-gradient(circle, rgba(255,0,0,0) 60%, white);
+    /* border-top-right-radius: 90%; */
+    border-radius: 50%;
+    overflow: hidden;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    /* top: calc((100vh - 100vw)/2) */
+}
