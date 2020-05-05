@@ -14,6 +14,7 @@ let numFaces = 8
 let step = 360 / numFaces
 let current = 0
 let index = 0
+let lastShowTutorial = new Date()
 
 while (current < 360) {
     faces[index] = {
@@ -30,6 +31,25 @@ function resetFaces() {
         delete f.value
     });
 }
+
+setInterval(() => {
+    var difference = (new Date() - lastShowTutorial) / 1000;
+    console.log(difference);
+    
+    if (difference > 5) {
+        lastShowTutorial = new Date()
+        faces.forEach((f, i) => {
+            if(!f.face){
+                self.postMessage({ type: 'tutorial', i: i + 1, subType: `show` })
+                return
+            }
+        })
+    }
+    // console.log(difference);
+    
+    // if(lastShowTutorial)
+}, 1000);
+
 
 self.onmessage = async (e) => {
 
@@ -160,7 +180,8 @@ self.keepPhotos = ({ angle, distance, coverData }) => {
             v.value = angle
             v.face = coverData
             self.postMessage({ type: 'draw', i: i + 1, data: v })
-            // console.log(faces);
+            self.postMessage({ type: 'tutorial', i: i + 1, subType: `hide` })
+            lastShowTutorial = new Date()
         }
     });
 

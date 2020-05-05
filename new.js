@@ -1,6 +1,6 @@
 import Stats from 'stats.js';
 import FaceIDUI from './draw'
-
+import Tutorial from './tutorial'
 let video, videoWidth, videoHeight, ctx, faceCtx, imgData, processs = false, scale = 1, left = 0, top = 0
 let stats = new Stats();
 let imageCapture// = new ImageCapture(videoTrack);
@@ -14,24 +14,27 @@ let circleTutorial = document.getElementById('circle')
 let draws = []
 let step = 8
 let faceIdUI = new FaceIDUI({ step }); faceIdUI.init()
+let tutorialView;
 let resetBtn = document.getElementById('reset')
 const faceMeshWorker = new Worker('./worker/facemesh.worker.js')
 const genImageWorker = new Worker('./worker/genImage.worker.js')
 
-for (let index = 1; index <= 8; index++) {
-    
-    
-    faceIdUI.startAnim(index)
-}
+// for (let index = 1; index <= 8; index++) {
+
+
+//     faceIdUI.startAnim(index)
+// }
 
 
 resetBtn.onclick = () => {
     console.log(`reset`);
+    resultE.innerHTML = ``
     resetDraw()
     endProcess()
 }
 
 function startProcess() {
+    
     timeElement.innerHTML = ``
     timmerProcess = setInterval(() => {
         processTime += 1
@@ -53,17 +56,31 @@ function resetDraw() {
 
 faceMeshWorker.onmessage = async (e) => {
     let data = e.data
+    switch (data.type) {
+        case `tutorial`:
+            if (data.subType === `hide`)
+                tutorialView.hide()
+            else tutorialView.show(data.i, step)
+            break;
+        case `done`:
+            processs = false
+            break;
+        case `draw`:
+            if (!draws.includes(data.i)) {
+                genImageWorker.postMessage(data.data.face)
 
-    if (data.type == "done") processs = false
-    if (data.type == 'draw' && !draws.includes(data.i)) {
-        genImageWorker.postMessage(data.data.face)
-
-        if (draws.length == 1) startProcess()
-        if (draws.length >= step - 1) endProcess()
-        draws.push(data.i)
-        faceIdUI.startAnim(data.i)
-
+                if (draws.length == 1) startProcess()
+                if (draws.length >= step - 1) endProcess()
+                draws.push(data.i)
+                faceIdUI.startAnim(data.i)
+                // tutorialView.show(data.i, step)
+            }
+            break;
+        default:
+            break;
     }
+
+
 }
 
 faceMeshWorker.onerror = (e) => {
@@ -79,6 +96,7 @@ genImageWorker.onmessage = (e) => {
     img.src = e.data
     imgDiv.appendChild(img)
     resultE.appendChild(imgDiv)
+    // resultE.scrollLeft += 100
 }
 
 //END Worker
@@ -117,7 +135,11 @@ async function setupCamera() {
     document.body.appendChild(stats.dom);
     circleTutorial.style.width = faceIdUI.innerWidth
     circleTutorial.style.height = faceIdUI.innerWidth
-    
+
+    tutorialView = new Tutorial(window.innerWidth, window.innerWidth)
+    // tutorialView.show()
+    console.log(`show`);
+
     try {
         await setupCamera();
         video.play();

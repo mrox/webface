@@ -10,7 +10,6 @@ export default class FaceIDUI {
     }
 
     init(){
-        
         let width = this.width | window.innerWidth;
         let height = this.height | window.innerHeight;
         let color = 'green';

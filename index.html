@@ -20,14 +20,36 @@
 
     <canvas id="output"></canvas>
     <video id="video" playsinline></video>
-    <div id="circle"></div>
+    <div id="circle">
+        <svg id="svg" width="100%" height="100%">
+        
+            <defs>
+                <radialGradient id = "g1" cx = "0" cy = "50%" r = "90%">
+                    <stop stop-color = "rgba(255,255,255,0)" offset = "60%"/>
+                    <stop stop-color = "rgba(255,255,255,0.8)" offset = "100%"/>
+                </radialGradient>
+
+                <linearGradient id="my-cool-gradient">
+                    <stop offset="0%" stop-color="rgba(255,0,0,0)" />
+                    <stop offset="50%" stop-color="rgba(255,0,0,0)" />
+                    <stop offset="100%" stop-color="white" />
+                  </linearGradient>
+                <linearGradient id="grad">
+                    <stop offset="30%" stop-color="rgba(255,255,255,0)" />
+                    <stop offset="100%" stop-color="rgba(255,255,255,0.6)" />
+                </linearGradient>
+            </defs>
+            <path id="path" style="fill:url(#g1);"
+               />
+        </svg>
+    </div>
     <!-- <canvas id="face"></canvas> -->
     <div id="container"></div>
     <div id="reset_div">
         <div class="top-item" id="time"></div>
         <div class="top-item"><button id="reset" class="btn btn-primary btn-sm">Reset</button></div>
     </div>
-    
+
     <div id="result"></div>
 </body>
 <script src="./draw.js"></script>

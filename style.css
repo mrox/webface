@@ -103,12 +103,13 @@ canvas {
     position: fixed;
     width: calc(100vw - 70px);
     height: calc(100vw - 70px);;
-    background-image: radial-gradient(circle, rgba(255,0,0,0) 60%, white);
+    /* background-image: radial-gradient(circle, rgba(255,0,0,0) 60%, white); */
     /* border-top-right-radius: 90%; */
     border-radius: 50%;
     overflow: hidden;
     left: 50%;
     top: 50%;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);/* rotate(-45deg);*/
+    
     /* top: calc((100vh - 100vw)/2) */
 }
