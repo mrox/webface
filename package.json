@@ -25,7 +25,7 @@
   },
   "scripts": {
     "test": "cross-env NODE_ENV=development parcel test.html --target browser",
-    "cwatch": "yarn link-local; cross-env NODE_ENV=development parcel index.html --cert ./ssl/10.136.230.110+4.pem --key ./ssl/10.136.230.110+4-key.pem --no-hmr --target browser --global window",
+    "cwatch": "yarn link-local; cross-env NODE_ENV=development parcel index.html --cert ./ssl/192.168.40.108+4.pem --key ./ssl/192.168.40.108+4-key.pem --no-hmr --target browser --global window",
     "watch": "yarn link-local; cross-env NODE_ENV=development parcel index.html --cert ./ssl/10.136.230.110.pem --key  ./ssl/10.136.230.110-key.pem --no-hmr --target browser --global window",
     "build": "rm -rf dist/face.* dist/crop.*;yarn link-local; cross-env NODE_ENV=production parcel build index.html --no-source-maps --target browser --public-url ./",
     "lint": "eslint .",
