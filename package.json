@@ -21,7 +21,7 @@
     "popper.js": "^1.16.1",
     "scatter-gl": "^0.0.4",
     "stats.js": "^0.17.0",
-    "three": "^0.115.0"
+    "three": "^0.125.0"
   },
   "scripts": {
     "test": "cross-env NODE_ENV=development parcel test.html --target browser",
